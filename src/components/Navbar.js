@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Navbar.css";
-import { CgProfile } from "react-icons/cg";
+import { CgProfile } from 'react-icons/cg'; 
 import { FaShoppingCart, FaPowerOff } from "react-icons/fa";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { IoClose } from "react-icons/io5";
@@ -66,13 +66,7 @@ function Navbar() {
             // ---- USER IS LOGGED IN ----
             <>
               <Link to="/profile" className="profile-link">
-                {/* --- CHANGE 1: Display user's profile picture or a default icon --- */}
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="Profile" className="profile-picture" />
-                ) : (
-                  <CgProfile size={20} />
-                )}
-                {/* --- CHANGE 2: Use user.displayName for the name --- */}
+                {/* ---  Use user.displayName for the name --- */}
                 <span>{user.displayName}</span>
               </Link>
               <Link to="/cart" className="cart-link">

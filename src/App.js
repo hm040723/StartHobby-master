@@ -13,6 +13,7 @@ import Quiz from "./pages/Quiz";
 import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
 import SignUpEmail from "./pages/SignUpEmail";
+import Profile from "./pages/Profile";
 import "./App.css";
 
 const App = () => {
@@ -37,6 +38,7 @@ const App = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/signup-email" element={<SignUpEmail />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </div>
     </>
