@@ -3,12 +3,6 @@ const express = require("express");
 const db = require("../db");
 const router = express.Router();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-// GET /api/users  → return all users
-router.get("/", (req, res) => {
-  const sql = "SELECT * FROM users";
-=======
 // GET /api/users  → Get all users
 router.get("/", (req, res) => {
   const sql = `
@@ -35,40 +29,6 @@ router.get("/", (req, res) => {
     res.json(rows);
   });
 });
-
-// GET /api/users  → return all users
-router.get("/", (req, res) => {
-  const sql = `
-    SELECT 
-      u.user_id, u.username, u.email, u.type_id,
-      up.points, up.xp, up.current_streak_days, up.last_login_date,
-      m.color_name AS membership
-    FROM users u
-    LEFT JOIN user_progress up ON u.user_id = up.user_id
-    LEFT JOIN membership m ON up.membership_id = m.membership_id
-  `;
->>>>>>> main
-=======
-// GET /api/users  → return all users
-router.get("/", (req, res) => {
-  const sql = "SELECT * FROM users";
->>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
-
-  db.query(sql, (err, rows) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "DB error" });
-    }
-    res.json(rows);
-  });
-});
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> main
-=======
->>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
 
 // GET /api/users/:userId/profile
 router.get("/:userId/profile", (req, res) => {
@@ -124,7 +84,7 @@ router.get("/leaderboard", (req, res) => {
     res.json(rows);
   });
 });
-
+// POST /api/users/signup
 router.post("/signup", (req, res) => {
   const { username, email, password, type_id } = req.body;
 
@@ -138,22 +98,14 @@ router.post("/signup", (req, res) => {
       console.error(err);
       return res.status(500).json({ error: "DB insert error" });
     }
-    res.json({ success: true, user_id: result.insertId });
-  });
-});
 
-router.post("/login", (req, res) => {
-  const { email, password } = req.body;
-
-  const sql = `SELECT * FROM users WHERE email = ? AND password = ?`;
-
-  db.query(sql, [email, password], (err, rows) => {
-    if (err) return res.status(500).json({ error: "DB error" });
-
-    if (!rows.length)
-      return res.status(401).json({ error: "Invalid credentials" });
-
-    res.json({ success: true, user: rows[0] });
+    res.json({
+      success: true,
+      user_id: result.insertId,
+      username,
+      email,
+      type_id,
+    });
   });
 });
 
