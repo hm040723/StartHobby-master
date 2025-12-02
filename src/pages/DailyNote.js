@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { apiRequest } from "../api";
@@ -17,17 +17,8 @@ function DailyNote() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredNotes, setFilteredNotes] = useState([]);
 
-  // ====== AUTHENTICATION CHECK ======
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    fetchUserNotes();
-  }, [isAuthenticated, user, navigate]);
-
   // ====== FETCH USER'S NOTES ======
-  const fetchUserNotes = async () => {
+  const fetchUserNotes = useCallback(async () => {
     if (!isAuthenticated || !user?.user_id) {
       setLoading(false);
       return;
@@ -46,7 +37,16 @@ function DailyNote() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user]);
+
+  // ====== AUTHENTICATION CHECK ======
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    fetchUserNotes();
+  }, [isAuthenticated, user, navigate, fetchUserNotes]);
 
   // ====== FILTER NOTES ======
   useEffect(() => {

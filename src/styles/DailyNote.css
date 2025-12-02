@@ -69,8 +69,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 2rem;
-  flex-wrap: wrap;
+  gap: 1.5rem;
+  flex-wrap: nowrap;
   position: sticky;
   top: 60px;
   z-index: 99;
@@ -79,13 +79,14 @@
 
 .search-container {
   position: relative;
-  flex: 1;
-  min-width: 280px;
-  max-width: 450px;
+  width: 100%;
+  max-width: 350px;
+  flex: 0 0 auto;
 }
 
 .search-input {
   width: 100%;
+  box-sizing: border-box; 
   padding: 0.7rem 1rem 0.7rem 2.5rem;
   border: 1px solid #dfe6e9;
   border-radius: 6px;
@@ -116,6 +117,8 @@
   color: #90a4ae;
   font-weight: 600;
   letter-spacing: 0.2px;
+  white-space: nowrap; 
+  flex-shrink: 0;
 }
 
 /* ==================== CONTAINER ==================== */
