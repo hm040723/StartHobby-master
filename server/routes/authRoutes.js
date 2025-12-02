@@ -1,4 +1,4 @@
-// server/routes/auth.js
+// server/routes/authRoutes.js
 const express = require("express");
 const db = require("../db");
 
@@ -6,6 +6,7 @@ const router = express.Router();
 
 /**
  * POST /api/auth/signup
+ * Creates a normal user (type_id = 'normal')
  */
 router.post("/signup", (req, res) => {
   const { username, email, password } = req.body;
@@ -25,11 +26,15 @@ router.post("/signup", (req, res) => {
       return res.status(500).json({ error: "DB insert error" });
     }
 
+    // default role is normal
+    const type_id = "normal";
+
     res.json({
       success: true,
       user_id: result.insertId,
       username,
       email,
+      type_id, // 👈 important for frontend
       message: "Account created!",
     });
   });
@@ -37,10 +42,14 @@ router.post("/signup", (req, res) => {
 
 /**
  * POST /api/auth/Login
- * (You’re calling "/auth/Login" in AuthContext, keep it matching here)
+ * (You’re calling "/auth/Login" in AuthContext, so keep the same case)
  */
 router.post("/Login", (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Missing email or password" });
+  }
 
   const sql = `
     SELECT * FROM users
@@ -64,6 +73,7 @@ router.post("/Login", (req, res) => {
       user_id: user.user_id,
       username: user.username,
       email: user.email,
+      type_id: user.type_id || "normal", // 👈 pass through role
     });
   });
 });

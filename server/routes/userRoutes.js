@@ -5,7 +5,7 @@ const router = express.Router();
 
 /**
  * GET /api/users
- * Return all users with basic info + progress + membership
+ * → Return all users with progress & membership info
  */
 router.get("/", (req, res) => {
   const sql = `
@@ -26,7 +26,7 @@ router.get("/", (req, res) => {
 
   db.query(sql, (err, rows) => {
     if (err) {
-      console.error("DB error (GET /api/users):", err);
+      console.error("DB error:", err);
       return res.status(500).json({ error: "Database error" });
     }
     res.json(rows);
@@ -35,7 +35,7 @@ router.get("/", (req, res) => {
 
 /**
  * GET /api/users/:userId/profile
- * Detailed profile for one user
+ * → Detailed profile for one user
  */
 router.get("/:userId/profile", (req, res) => {
   const sql = `
@@ -48,22 +48,18 @@ router.get("/:userId/profile", (req, res) => {
     LEFT JOIN membership m ON up.membership_id = m.membership_id
     WHERE u.user_id = ?
   `;
-
   db.query(sql, [req.params.userId], (err, rows) => {
     if (err) {
-      console.error("DB error (GET /:userId/profile):", err);
+      console.error(err);
       return res.status(500).json({ error: "DB error" });
     }
-    if (!rows.length) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!rows.length) return res.status(404).json({ error: "User not found" });
     res.json(rows[0]);
   });
 });
 
 /**
  * GET /api/users/:userId/badges
- * Badges earned by user
  */
 router.get("/:userId/badges", (req, res) => {
   const sql = `
@@ -72,10 +68,9 @@ router.get("/:userId/badges", (req, res) => {
     JOIN badge b ON ub.badge_id = b.badge_id
     WHERE ub.user_id = ?
   `;
-
   db.query(sql, [req.params.userId], (err, rows) => {
     if (err) {
-      console.error("DB error (GET /:userId/badges):", err);
+      console.error(err);
       return res.status(500).json({ error: "DB error" });
     }
     res.json(rows);
@@ -84,7 +79,6 @@ router.get("/:userId/badges", (req, res) => {
 
 /**
  * GET /api/users/leaderboard
- * Top 20 users by points/xp
  */
 router.get("/leaderboard", (req, res) => {
   const sql = `
@@ -103,16 +97,56 @@ router.get("/leaderboard", (req, res) => {
 
   db.query(sql, (err, rows) => {
     if (err) {
-      console.error("DB error (GET /leaderboard):", err);
+      console.error(err);
       return res.status(500).json({ error: "DB error" });
     }
+
     res.json(rows);
   });
 });
 
 /**
+ * (Legacy) POST /api/users/signup
+ * You already have /api/auth/signup, this is optional.
+ */
+router.post("/signup", (req, res) => {
+  const { username, email, password, type_id } = req.body;
+
+  const sql = `
+    INSERT INTO users (username, email, password, type_id)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  db.query(sql, [username, email, password, type_id], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "DB insert error" });
+    }
+    res.json({ success: true, user_id: result.insertId });
+  });
+});
+
+/**
+ * (Legacy) POST /api/users/login
+ * You already use /api/auth/Login in frontend, so this may not be used.
+ */
+router.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  const sql = `SELECT * FROM users WHERE email = ? AND password = ?`;
+
+  db.query(sql, [email, password], (err, rows) => {
+    if (err) return res.status(500).json({ error: "DB error" });
+
+    if (!rows.length)
+      return res.status(401).json({ error: "Invalid credentials" });
+
+    res.json({ success: true, user: rows[0] });
+  });
+});
+
+/**
  * POST /api/users/award-badge
- * Give a badge to a user
  */
 router.post("/award-badge", (req, res) => {
   const { user_id, badge_id } = req.body;
@@ -128,7 +162,7 @@ router.post("/award-badge", (req, res) => {
 
   db.query(sql, [user_id, badge_id], (err, result) => {
     if (err) {
-      console.error("DB error (POST /award-badge):", err);
+      console.error(err);
       return res.status(500).json({ error: "DB insert error" });
     }
 
@@ -138,14 +172,9 @@ router.post("/award-badge", (req, res) => {
 
 /**
  * POST /api/users/update-progress
- * Update XP + points for a user
  */
 router.post("/update-progress", (req, res) => {
   const { user_id, xp_gain, points_gain } = req.body;
-
-  if (!user_id) {
-    return res.status(400).json({ error: "Missing user_id" });
-  }
 
   const sql = `
     UPDATE user_progress
@@ -153,9 +182,9 @@ router.post("/update-progress", (req, res) => {
     WHERE user_id = ?
   `;
 
-  db.query(sql, [xp_gain || 0, points_gain || 0, user_id], (err, result) => {
+  db.query(sql, [xp_gain, points_gain, user_id], (err) => {
     if (err) {
-      console.error("DB error (POST /update-progress):", err);
+      console.error(err);
       return res.status(500).json({ error: "DB update error" });
     }
 
@@ -165,14 +194,9 @@ router.post("/update-progress", (req, res) => {
 
 /**
  * POST /api/users/update-streak
- * Update login streak for the day
  */
 router.post("/update-streak", (req, res) => {
   const { user_id } = req.body;
-
-  if (!user_id) {
-    return res.status(400).json({ error: "Missing user_id" });
-  }
 
   const sql = `
     SELECT current_streak_days, last_login_date
@@ -181,87 +205,70 @@ router.post("/update-streak", (req, res) => {
   `;
 
   db.query(sql, [user_id], (err, rows) => {
-    if (err) {
-      console.error("DB error (POST /update-streak select):", err);
-      return res.status(500).json({ error: "DB error" });
-    }
+    if (err) return res.status(500).json({ error: "DB error" });
 
-    if (!rows.length) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!rows.length) return res.status(404).json({ error: "User not found" });
 
     const { current_streak_days, last_login_date } = rows[0];
-    const today = new Date().toISOString().split("T")[0];
-    const yesterday = new Date(Date.now() - 86400000)
-      .toISOString()
-      .split("T")[0];
 
-    // If already logged in today → nothing to change
-    if (last_login_date === today) {
-      return res.json({
+    const today = new Date().toISOString().split("T")[0];
+
+    // If first time or streak broken
+    if (!last_login_date || last_login_date < today) {
+      let newStreak = current_streak_days;
+
+      const yesterday = new Date(Date.now() - 86400000)
+        .toISOString()
+        .split("T")[0];
+
+      if (last_login_date === yesterday) {
+        newStreak = current_streak_days + 1; // continue streak
+      } else {
+        newStreak = 1; // reset streak
+      }
+
+      const updateSql = `
+        UPDATE user_progress
+        SET current_streak_days = ?, last_login_date = ?
+        WHERE user_id = ?
+      `;
+
+      db.query(updateSql, [newStreak, today, user_id], (err2) => {
+        if (err2) return res.status(500).json({ error: "DB update error" });
+
+        return res.json({
+          success: true,
+          current_streak_days: newStreak,
+          last_login_date: today,
+        });
+      });
+    } else {
+      // Already logged in today
+      res.json({
         success: true,
         message: "Already updated today",
         current_streak_days,
       });
     }
-
-    let newStreak;
-    if (last_login_date === yesterday) {
-      newStreak = current_streak_days + 1; // continue streak
-    } else {
-      newStreak = 1; // reset streak
-    }
-
-    const updateSql = `
-      UPDATE user_progress
-      SET current_streak_days = ?, last_login_date = ?
-      WHERE user_id = ?
-    `;
-
-    db.query(updateSql, [newStreak, today, user_id], (err2) => {
-      if (err2) {
-        console.error("DB error (POST /update-streak update):", err2);
-        return res.status(500).json({ error: "DB update error" });
-      }
-
-      return res.json({
-        success: true,
-        current_streak_days: newStreak,
-        last_login_date: today,
-      });
-    });
   });
 });
 
 /**
  * POST /api/users/update-membership
- * Recalculate membership level based on XP
  */
 router.post("/update-membership", (req, res) => {
   const { user_id } = req.body;
 
-  if (!user_id) {
-    return res.status(400).json({ error: "Missing user_id" });
-  }
-
-  // Step 1: get user's XP
   const xpSql = `
     SELECT xp FROM user_progress WHERE user_id = ?
   `;
 
   db.query(xpSql, [user_id], (err, xpRows) => {
-    if (err) {
-      console.error("DB error (update-membership xp):", err);
-      return res.status(500).json({ error: "DB error (xp)" });
-    }
-
-    if (!xpRows.length) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (err) return res.status(500).json({ error: "DB error (xp)" });
+    if (!xpRows.length) return res.status(404).json({ error: "User not found" });
 
     const userXp = xpRows[0].xp;
 
-    // Step 2: get membership level user qualifies for
     const membershipSql = `
       SELECT membership_id
       FROM membership
@@ -271,18 +278,10 @@ router.post("/update-membership", (req, res) => {
     `;
 
     db.query(membershipSql, [userXp], (err2, mRows) => {
-      if (err2) {
-        console.error("DB error (update-membership membership):", err2);
-        return res.status(500).json({ error: "DB error (membership)" });
-      }
-
-      if (!mRows.length) {
-        return res.status(500).json({ error: "No membership level found" });
-      }
+      if (err2) return res.status(500).json({ error: "DB error (membership)" });
 
       const newMembershipId = mRows[0].membership_id;
 
-      // Step 3: update user_progress
       const updateSql = `
         UPDATE user_progress
         SET membership_id = ?
@@ -290,10 +289,7 @@ router.post("/update-membership", (req, res) => {
       `;
 
       db.query(updateSql, [newMembershipId, user_id], (err3) => {
-        if (err3) {
-          console.error("DB error (update-membership update):", err3);
-          return res.status(500).json({ error: "DB update error" });
-        }
+        if (err3) return res.status(500).json({ error: "DB update error" });
 
         return res.json({
           success: true,
@@ -307,19 +303,28 @@ router.post("/update-membership", (req, res) => {
 
 /**
  * PUT /api/users/:userId
- * Update username + email (used by your Profile page)
+ * → update username + email + (optional) type_id (for admin/user role)
  */
 router.put("/:userId", (req, res) => {
   const userId = req.params.userId;
-  const { username, email } = req.body;
+  const { username, email, type_id } = req.body;
 
   if (!username || !email) {
     return res.status(400).json({ message: "Missing username or email" });
   }
 
-  const sql = "UPDATE users SET username = ?, email = ? WHERE user_id = ?";
+  let sql;
+  let params;
 
-  db.query(sql, [username, email, userId], (err, result) => {
+  if (type_id) {
+    sql = "UPDATE users SET username = ?, email = ?, type_id = ? WHERE user_id = ?";
+    params = [username, email, type_id, userId];
+  } else {
+    sql = "UPDATE users SET username = ?, email = ? WHERE user_id = ?";
+    params = [username, email, userId];
+  }
+
+  db.query(sql, params, (err, result) => {
     if (err) {
       console.error("Error updating user:", err);
       return res.status(500).json({ message: "Failed to update profile" });
@@ -334,6 +339,7 @@ router.put("/:userId", (req, res) => {
       user_id: Number(userId),
       username,
       email,
+      type_id: type_id || undefined,
     });
   });
 });

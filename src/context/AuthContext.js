@@ -1,56 +1,16 @@
+// src/context/AuthContext.js
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
+import { apiRequest } from "../api";   // 👈 reuse shared API helper
 
 const AuthContext = createContext();
-
-
-const API_BASE_URL = "https://start-hobby-master.vercel.app/api";
-
-// use this for local development
-//const API_BASE_URL = "http://localhost:5000/api";
-
-
-async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem("token");
-
-  console.log("[API] Request:", {
-    url: `${API_BASE_URL}${path}`,
-    options,
-  });
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method: options.method || "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
-
-  let data = null;
-  try {
-    data = await res.json();
-  } catch (e) {
-    console.warn("[API] No JSON body in response");
-  }
-
-  console.log("[API] Response:", res.status, data);
-
-  if (!res.ok) {
-    const message =
-      data?.error || data?.message || `Request failed with status ${res.status}`;
-    throw new Error(message);
-  }
-
-  return data;
-}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ====== INITIAL LOAD: check backend user or Firebase Google user ======
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       const storedUser = localStorage.getItem("user");
@@ -61,6 +21,7 @@ export function AuthProvider({ children }) {
           setUser(JSON.parse(storedUser));
         } catch {
           localStorage.removeItem("user");
+          setUser(null);
         }
       } else if (firebaseUser) {
         // Google user (Firebase)
@@ -69,6 +30,8 @@ export function AuthProvider({ children }) {
           username: firebaseUser.displayName,
           email: firebaseUser.email,
           isGoogle: true,
+          // Google user has no type_id from DB, treat as normal on UI
+          type_id: "normal",
         });
       } else {
         setUser(null);
@@ -80,6 +43,7 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
+  // ====== LOGIN (Backend email/password) ======
   const login = async (email, password) => {
     const data = await apiRequest("/auth/Login", {
       method: "POST",
@@ -90,15 +54,16 @@ export function AuthProvider({ children }) {
 
     const userData = {
       user_id: data.user_id,
-      // just in case backend doesn't send username for some reason
       username: data.username ?? data.email ?? email,
       email: data.email ?? email,
+      type_id: data.type_id ?? "normal", // 👈 important for admin / user
     };
 
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
   };
 
+  // ====== SIGNUP (Backend email/password) ======
   const signup = async (username, email, password) => {
     const data = await apiRequest("/auth/signup", {
       method: "POST",
@@ -109,18 +74,18 @@ export function AuthProvider({ children }) {
 
     const userData = {
       user_id: data.user_id,
-      // ✅ use the values we already have, fallback to backend if it sends them
       username: data.username ?? username,
       email: data.email ?? email,
+      type_id: data.type_id ?? "normal",
     };
 
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
   };
 
+  // ====== UPDATE PROFILE (name + email) ======
   const updateProfile = async ({ username, email }) => {
     const currentUser = user;
-
     if (!currentUser) {
       throw new Error("No logged in user");
     }
@@ -146,7 +111,7 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  // 🔐 CHANGE PASSWORD (backend email/password users only)
+  // ====== CHANGE PASSWORD (backend users only) ======
   const changePassword = async (currentPassword, newPassword) => {
     if (!user) {
       throw new Error("No logged in user.");
@@ -171,12 +136,17 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  // ====== LOGOUT ======
   const logout = () => {
     auth.signOut();
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     setUser(null);
   };
+
+  // ====== ROLE HELPERS ======
+  const isAuthenticated = !!user;
+  const isAdmin = !!user && user.type_id === "admin";
 
   return (
     <AuthContext.Provider
@@ -188,7 +158,8 @@ export function AuthProvider({ children }) {
         logout,
         updateProfile,
         changePassword,
-        isAuthenticated: !!user,
+        isAuthenticated,
+        isAdmin,           // 👈 used in Navbar
       }}
     >
       {!loading && children}

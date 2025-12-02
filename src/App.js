@@ -1,6 +1,6 @@
+// src/App.js
 import React from "react";
-// 1. Correct the imports from react-router-dom
-import { Routes, Route, useLocation } from "react-router-dom"; 
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Twister from "./pages/Twister";
@@ -15,12 +15,14 @@ import SignupPage from "./pages/Signup";
 import SignUpEmail from "./pages/SignUpEmail";
 import Profile from "./pages/Profile";
 import MembershipPage from "./pages/Membership";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsers from "./pages/AdminUsers";       // 👈 NEW
+import AdminQuiz from "./pages/AdminQuiz";
 import "./App.css";
 
 const App = () => {
-  // This will now work correctly
-  const location = useLocation(); 
-  const pathsWithoutNavbar = ['/login', '/signup', '/signup-email'];
+  const location = useLocation();
+  const pathsWithoutNavbar = ["/login", "/signup", "/signup-email"];
   const showNavbar = !pathsWithoutNavbar.includes(location.pathname);
 
   return (
@@ -41,6 +43,12 @@ const App = () => {
           <Route path="/signup-email" element={<SignUpEmail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/membership" element={<MembershipPage />} />
+
+          {/* ADMIN ROUTES */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/quiz" element={<AdminQuiz />} />
+
         </Routes>
       </div>
     </>

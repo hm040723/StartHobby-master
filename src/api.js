@@ -1,13 +1,18 @@
 // src/api.js
 
-const API_BASE_URL = "https://start-hobby-master.vercel.app/api";
+const PROD_URL = "https://start-hobby-master.vercel.app/api";
+const LOCAL_URL = "http://localhost:5000/api";
+
+// Auto-detect environment
+export const API_BASE_URL =
+  process.env.NODE_ENV === "development" ? LOCAL_URL : PROD_URL;
 
 export async function apiRequest(path, options = {}) {
   const token = localStorage.getItem("token");
 
-  console.log("[API] Request:", { url: `${API_BASE_URL}${path}`, options });
+  console.log("📡 [API REQUEST]", `${API_BASE_URL}${path}`, options);
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
@@ -17,25 +22,28 @@ export async function apiRequest(path, options = {}) {
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
-  // handle API error
-  if (!res.ok) {
-    let message = `Error: ${res.status}`;
+  // Handle non-success HTTP status
+  if (!response.ok) {
+    let message = `Error: ${response.status}`;
+
     try {
-      const body = await res.json(); // try read json
-      message = body?.error || body?.message || message;
+      const errorData = await response.json();
+      message = errorData?.error || errorData?.message || message;
     } catch (e) {
-      console.warn("[API] No JSON body in response");
+      console.warn("⚠️ API returned non-JSON error body");
     }
+
+    console.error("❌ [API ERROR]", message);
     throw new Error(message);
   }
 
-  // return JSON or null if empty
+  // Handle successful response
   try {
-    return await res.json();
-  } catch {
-    console.warn("[API] No JSON body in response");
+    const data = await response.json();
+    console.log("✅ [API RESPONSE]", data);
+    return data;
+  } catch (e) {
+    console.warn("ℹ️ API returned empty response body");
     return null;
   }
 }
-
-export { API_BASE_URL };
