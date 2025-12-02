@@ -1,4 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
 import { auth } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -34,7 +38,11 @@ async function apiRequest(path, options = {}) {
   console.log("[API] Response:", res.status, data);
 
   if (!res.ok) {
+<<<<<<< HEAD
     const message = data?.error || data?.message || `Request failed with status ${res.status}`;
+=======
+    const message = data?.message || `Request failed with status ${res.status}`;
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
     throw new Error(message);
   }
 
@@ -63,14 +71,22 @@ export function AuthProvider({ children }) {
           user_id: firebaseUser.uid,
           username: firebaseUser.displayName,
           email: firebaseUser.email,
+<<<<<<< HEAD
           isGoogle: true,
+=======
+          isGoogle: true
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
         });
       } else {
         // Option C: Not logged in
         setUser(null);
       }
 
+<<<<<<< HEAD
       setLoading(false);
+=======
+      setLoading(false); 
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
     });
 
     return () => unsubscribe();
@@ -114,7 +130,11 @@ export function AuthProvider({ children }) {
 
   const updateProfile = async ({ username, email }) => {
     // We use the state 'user' here to support both Google and Backend users
+<<<<<<< HEAD
     const currentUser = user;
+=======
+    const currentUser = user; 
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
 
     if (!currentUser) {
       throw new Error("No logged in user");
@@ -141,6 +161,7 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+<<<<<<< HEAD
   // 🔐 CHANGE PASSWORD (backend email/password users only)
   const changePassword = async (currentPassword, newPassword) => {
     if (!user) {
@@ -167,6 +188,10 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     auth.signOut();
+=======
+  const logout = () => {
+    auth.signOut(); 
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     setUser(null);
@@ -181,7 +206,10 @@ export function AuthProvider({ children }) {
         signup,
         logout,
         updateProfile,
+<<<<<<< HEAD
         changePassword,        // 👈 expose here
+=======
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
         isAuthenticated: !!user,
       }}
     >
@@ -192,4 +220,8 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   return useContext(AuthContext);
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae

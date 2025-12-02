@@ -59,6 +59,7 @@ router.post("/login", (req, res) => {
   });
 });
 
+<<<<<<< HEAD
 // ➤ CHANGE PASSWORD (no hashing)
 router.post("/change-password", (req, res) => {
   const { email, currentPassword, newPassword } = req.body;
@@ -103,4 +104,6 @@ router.post("/change-password", (req, res) => {
   });
 });
 
+=======
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
 module.exports = router;

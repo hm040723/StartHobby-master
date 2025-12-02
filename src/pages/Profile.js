@@ -7,13 +7,18 @@ import MembershipSummary from "../components/MembershipSummary";
 import "../styles/Profile.css";
 
 function Profile() {
+<<<<<<< HEAD
   const { user, logout, updateProfile, changePassword } = useAuth();
+=======
+  const { user, logout, updateProfile } = useAuth();
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
 
   const [editMode, setEditMode] = useState(false);
   const [username, setUsername] = useState(user?.username || "");
   const [email, setEmail] = useState(user?.email || "");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+<<<<<<< HEAD
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 🔐 Password change states
@@ -22,6 +27,9 @@ function Profile() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwStatus, setPwStatus] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
+=======
+  const [isModalOpen, setIsModalOpen] = useState(false); 
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
 
   if (!user) {
     return (
@@ -78,6 +86,7 @@ function Profile() {
     }
   };
 
+<<<<<<< HEAD
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwStatus("");
@@ -115,16 +124,27 @@ function Profile() {
   };
 
   return (
+=======
+   return (
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
     <div className="profile-page">
       <h1 className="title">My Profile</h1>
 
       {/* The Unified Card */}
       <div className="profile-details">
+<<<<<<< HEAD
         {/* LEFT SECTION: User Info + Password */}
         <div className="profile-left-section">
           <CgProfile className="profile-picture" />
 
           {/* PROFILE INFO FORM */}
+=======
+        
+        {/* LEFT SECTION: User Info */}
+        <div className="profile-left-section">
+          <CgProfile className="profile-picture" />
+
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
           <form className="user-info" onSubmit={handleSave}>
             <div className="detail-group">
               <span className="detail-label">Name</span>
@@ -154,12 +174,16 @@ function Profile() {
               )}
             </div>
 
+<<<<<<< HEAD
             {status && <p className="profile-status">{status}</p>}
 
+=======
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
             <div className="profile-actions">
               <div className="profile-actions-buttons">
                 {!editMode ? (
                   <>
+<<<<<<< HEAD
                     <button
                       type="button"
                       className="logout-btn"
@@ -172,16 +196,26 @@ function Profile() {
                       className="edit-btn"
                       onClick={handleEdit}
                     >
+=======
+                    <button type="button" className="logout-btn" onClick={confirmLogout}>
+                      Log out
+                    </button>
+                    <button type="button" className="edit-btn" onClick={() => setEditMode(true)}>
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
                       Edit profile
                     </button>
                   </>
                 ) : (
                   <>
+<<<<<<< HEAD
                     <button
                       type="button"
                       className="cancel-btn"
                       onClick={handleCancel}
                     >
+=======
+                    <button type="button" className="cancel-btn" onClick={() => setEditMode(false)}>
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
                       Cancel
                     </button>
                     <button type="submit" className="save-btn" disabled={saving}>
@@ -192,6 +226,7 @@ function Profile() {
               </div>
             </div>
           </form>
+<<<<<<< HEAD
 
           {/* CHANGE PASSWORD SECTION */}
           <div className="password-section">
@@ -246,18 +281,28 @@ function Profile() {
               </button>
             </form>
           </div>
+=======
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
         </div>
 
         {/* RIGHT SECTION: Membership */}
         <div className="profile-right-section">
           <MembershipSummary />
         </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
       </div>
 
       {isModalOpen && (
         <ConfirmModal
           title="Confirm Logout"
+<<<<<<< HEAD
           onConfirm={handleLogout}
+=======
+          onConfirm={async () => { await logout(); setIsModalOpen(false); }}
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
           onCancel={() => setIsModalOpen(false)}
         >
           <p>Are you sure you want to log out?</p>

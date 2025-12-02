@@ -4,6 +4,7 @@ const db = require("../db");
 const router = express.Router();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // GET /api/users  → return all users
 router.get("/", (req, res) => {
   const sql = "SELECT * FROM users";
@@ -47,6 +48,11 @@ router.get("/", (req, res) => {
     LEFT JOIN membership m ON up.membership_id = m.membership_id
   `;
 >>>>>>> main
+=======
+// GET /api/users  → return all users
+router.get("/", (req, res) => {
+  const sql = "SELECT * FROM users";
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
 
   db.query(sql, (err, rows) => {
     if (err) {
@@ -57,9 +63,12 @@ router.get("/", (req, res) => {
   });
 });
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> main
+=======
+>>>>>>> 4c005d743bab26eb59270e5ddb58b3218c9610ae
 
 // GET /api/users/:userId/profile
 router.get("/:userId/profile", (req, res) => {
