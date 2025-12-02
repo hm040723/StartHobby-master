@@ -4,8 +4,7 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 import { motion } from "framer-motion";
 import "../styles/HobbyQuiz.css";
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import { API_BASE_URL } from "../api";   // ✅ use shared base URL
 
 function Quiz() {
   const [quiz, setQuiz] = useState(null);
@@ -27,6 +26,7 @@ function Quiz() {
         const data = await res.json();
         setQuiz(data);
       } catch (err) {
+        console.error(err);
         setError("Unable to load quiz questions.");
       } finally {
         setLoading(false);
@@ -65,10 +65,7 @@ function Quiz() {
       }
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "AI evaluation failed");
-
       setResult(data.ai_result);
-
     } catch (err) {
       console.error("Evaluation Error:", err);
       setError(err.message || "Evaluation error");
@@ -78,6 +75,8 @@ function Quiz() {
   };
 
   const saveResultToDB = async () => {
+    if (!result) return;
+
     await fetch(`${API_BASE_URL}/quizzes/save-result`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -87,9 +86,10 @@ function Quiz() {
         personality_summary: result.personality_summary,
         strengths: result.strengths,
         suggested_hobbies: result.suggested_hobbies || result.recommended_hobbies,
-        reasons: result.reasons,
+        reasons: result.reasons || result.hobby_reasons,
       }),
     });
+
     alert("Result saved to profile!");
   };
 
@@ -144,11 +144,13 @@ function Quiz() {
 
           <h3 className="quiz-section-heading">💡 Why These Fit You</h3>
           <ul className="quiz-hobby-list">
-            {(result.reasons || result.hobby_reasons || result.recommended_hobbies || []).map((item, idx) => (
-              <li key={idx} className="quiz-hobby-item">
-                • {typeof item === "string" ? item : item.reason}
-              </li>
-            ))}
+            {(result.reasons || result.hobby_reasons || result.recommended_hobbies || []).map(
+              (item, idx) => (
+                <li key={idx} className="quiz-hobby-item">
+                  • {typeof item === "string" ? item : item.reason}
+                </li>
+              )
+            )}
           </ul>
 
           <button className="quiz-save-button" onClick={saveResultToDB}>
@@ -211,7 +213,9 @@ function Quiz() {
               key={opt.option_id}
               className="quiz-option-btn"
               whileTap={{ scale: 0.95 }}
-              onClick={() => handleAnswerClick(currentQuestion.question_id, opt.option_id)}
+              onClick={() =>
+                handleAnswerClick(currentQuestion.question_id, opt.option_id)
+              }
               disabled={evaluating}
             >
               {opt.option_text}

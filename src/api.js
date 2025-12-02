@@ -1,11 +1,13 @@
 // src/api.js
-const API_BASE_URL = "https://backend-c8sn.vercel.app";
+
+const API_BASE_URL = "https://start-hobby-master.vercel.app/api";
 
 export async function apiRequest(path, options = {}) {
   const token = localStorage.getItem("token");
 
+  console.log("[API] Request:", { url: `${API_BASE_URL}${path}`, options });
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    // default method = GET if not provided
     method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
@@ -15,20 +17,23 @@ export async function apiRequest(path, options = {}) {
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
-  // handle non-200 errors
+  // handle API error
   if (!res.ok) {
-    let message = "Request failed";
+    let message = `Error: ${res.status}`;
     try {
-      const errData = await res.json();
-      message = errData.message || message;
-    } catch (e) {}
+      const body = await res.json(); // try read json
+      message = body?.error || body?.message || message;
+    } catch (e) {
+      console.warn("[API] No JSON body in response");
+    }
     throw new Error(message);
   }
 
-  // if there is no JSON (e.g. 204), just return null
+  // return JSON or null if empty
   try {
     return await res.json();
   } catch {
+    console.warn("[API] No JSON body in response");
     return null;
   }
 }
