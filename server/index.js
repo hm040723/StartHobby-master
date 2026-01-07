@@ -3,8 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const db = require("./db");
 
+// Import routes
 const quizRoutes = require("./routes/quizRoutes");
 const postRoutes = require("./routes/postRoutes");
+const hobbyGameRoutes = require("./routes/hobbyGameRoutes");
 const userRoutes = require("./routes/userRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const likeRoutes = require("./routes/likeRoutes");
@@ -12,18 +14,22 @@ const bookmarkRoutes = require("./routes/bookmarkRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const followRoutes = require("./routes/followRoutes");
 const authRoutes = require("./routes/authRoutes");
-const hobbyGameRoutes = require("./routes/hobbyGameRoutes");
 
 const app = express();
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+// CORS
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// JSON parser
 app.use(express.json());
 
-// ✅ Put root route at the very top
+// ✅ Root route
 app.get("/", (req, res) => {
   res.send("StartHobby API is running 🚀");
 });
@@ -40,16 +46,13 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/follows", followRoutes);
 app.use("/api/auth", authRoutes);
 
-// Test route
+// Test database
 app.get("/test-db", (req, res) => {
   db.query("SELECT * FROM users LIMIT 5", (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "DB error", details: err });
-    }
+    if (err) return res.status(500).json({ error: "DB error", details: err });
     res.json(results);
   });
 });
 
-// ✅ Make sure module export is correct
+// ✅ Export app for Vercel
 module.exports = app;
