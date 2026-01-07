@@ -1,87 +1,35 @@
 const express = require("express");
+const getDB = require("../db");
 const router = express.Router();
-const db = require("../db");
 
-// Initialize hobby_entries table on first run
-const initTable = () => {
-  const createTableSQL = `
-    CREATE TABLE IF NOT EXISTS hobby_entries (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      hobby_name VARCHAR(255) NOT NULL,
-      hobby_key VARCHAR(255) NOT NULL UNIQUE,
-      count INT DEFAULT 1,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    );
-  `;
-  
-  db.query(createTableSQL, (err) => {
-    if (err) {
-      console.error("❌ Error creating hobby_entries table:", err);
-    } else {
-      console.log("✅ hobby_entries table ready");
-    }
-  });
-};
-
-initTable();
-
-// Normalize hobby text
-function normalize(text) {
-  return text.trim().toLowerCase();
-}
-
-// GET aggregated hobby counts from database
-router.get("/hobby-entries", (req, res) => {
-  const query = `
-    SELECT hobby_name as hobby, hobby_key as \`key\`, count 
-    FROM hobby_entries 
-    ORDER BY count DESC, updated_at DESC
-    LIMIT 50
-  `;
-  
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("❌ Database error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    res.json(results || []);
-  });
+router.get("/hobby-entries", async (req, res) => {
+  try {
+    const db = await getDB();
+    const [rows] = await db.query(`
+      SELECT hobby_name AS hobby, hobby_key AS \`key\`, count
+      FROM hobby_entries
+      ORDER BY count DESC
+      LIMIT 50
+    `);
+    res.json(rows);
+  } catch {
+    res.status(500).json({ error: "DB error" });
+  }
 });
 
-// POST submit a hobby to database
-router.post("/hobby-entries", (req, res) => {
-  const { hobby } = req.body || {};
-  if (!hobby || typeof hobby !== "string")
-    return res.status(400).json({ error: "Invalid hobby" });
-
-  const hobbyName = hobby.trim();
-  const hobbyKey = normalize(hobby);
-
-  const query = `
-    INSERT INTO hobby_entries (hobby_name, hobby_key, count)
-    VALUES (?, ?, 1)
-    ON DUPLICATE KEY UPDATE 
-      count = count + 1,
-      updated_at = CURRENT_TIMESTAMP
-  `;
-
-  db.query(query, [hobbyName, hobbyKey], (err, result) => {
-    if (err) {
-      console.error("❌ Database error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-
-    // Get updated count
-    const selectQuery = `SELECT hobby_name as hobby, hobby_key as \`key\`, count FROM hobby_entries WHERE hobby_key = ?`;
-    db.query(selectQuery, [hobbyKey], (err, rows) => {
-      if (err) {
-        return res.status(500).json({ error: "Database error" });
-      }
-      const entry = rows[0];
-      res.json({ hobby: entry.hobby, count: entry.count });
-    });
-  });
+router.post("/hobby-entries", async (req, res) => {
+  const { hobby } = req.body;
+  try {
+    const db = await getDB();
+    await db.query(`
+      INSERT INTO hobby_entries (hobby_name, hobby_key, count)
+      VALUES (?, ?, 1)
+      ON DUPLICATE KEY UPDATE count = count + 1
+    `, [hobby, hobby.toLowerCase()]);
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "DB error" });
+  }
 });
 
 module.exports = router;

@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const db = require("./db");
+const getDB = require("./db")
 
 // Import routes
 const quizRoutes = require("./routes/quizRoutes");
@@ -47,11 +48,14 @@ app.use("/api/follows", followRoutes);
 app.use("/api/auth", authRoutes);
 
 // Test database
-app.get("/test-db", (req, res) => {
-  db.query("SELECT * FROM users LIMIT 5", (err, results) => {
-    if (err) return res.status(500).json({ error: "DB error", details: err });
+app.get("/test-db", async (req, res) => {
+  try {
+    const db = await getDB();
+    const [results] = await db.query("SELECT * FROM users LIMIT 5");
     res.json(results);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ✅ Export app for Vercel
