@@ -1,0 +1,39 @@
+.game-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 5rem;
+    /* height: 100vh; */
+}
+
+.game-contain {
+    width: 800px;
+    height: 400px;
+    position: relative;
+    border: 10px solid #c6b6b1;
+    border-radius: 20px;
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+}
+
+.title {
+    font-size: 2rem !important;
+    font-weight: bold;
+    color: #5b3a1e;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+button {
+    background-color: #8ed1dc;
+    color: white;
+    border-radius: 25px;
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    border: none;
+    margin-top: 1rem;
+}
