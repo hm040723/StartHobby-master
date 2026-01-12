@@ -21,9 +21,10 @@ const app = express();
 // CORS
 app.use(
   cors({
-    origin: "*",
+    origin: "https://start-hobby.vercel.app", // your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true // needed if you use Authorization header or cookies
   })
 );
 
